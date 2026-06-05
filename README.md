@@ -417,6 +417,6 @@ Proprietary. All rights reserved.
 
 ## Maintainer
 
-**Rajat Wyrm**
+**Rajat Kumar - Project Management**
 
 [GitHub](https://github.com/rajat-wyrm)
