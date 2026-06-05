@@ -18,3 +18,17 @@ backend/.env
 backend/.env.*
 
 InternOps/
+internops-diagnostic-report.txt
+internops-crash.log
+server-debug.log
+backend-test-report.txt
+_dbtest.cjs
+_fix_async.cjs
+_fix_routes.cjs
+_merge_routes.cjs
+_migrate_runner.cjs
+check_plugins.js
+db-test.js
+fix_async_done.js
+*.log
+*-report.txt
