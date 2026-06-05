@@ -2,12 +2,11 @@
 
 Enterprise Workforce Management and Intern Operations Platform
 
-[ License](https://img.shields.io/badge/license-Proprietary-blue.svg)](LICENSE)
-[!Node.js](https://img.shields.io/badge/node-%E3%80%8E18.0.0-brightgreen.svg)](https://nodejs.org/)
-[!PostgreSQL](https://img.shields.io/badge/postgres-%E3%80%8E14.0-blue.svg)](https://www.postgresql.org/)
-[!Fastify](https://img.shields.io/badge/fastify-4.x-000000.svg)](https://www.fastify.io/)
-[!React](https://img.shields.io/badge/react-18.x-61DAFB.svg)](https://react.dev/)
-
+[![License](https://img.shields.io/badge/License-Proprietary-blue?style=for-the-badge)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Fastify](https://img.shields.io/badge/Fastify-4.x-000000?style=for-the-badge&logo=fastify&logoColor=white)](https://fastify.dev/)
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 ## Table of Contents
 
 - Executive Summary
