@@ -23,7 +23,13 @@ async function get(userId, { page = 1, limit = 20 } = {}) {
 }
 
 async function markRead(notificationId, userId) {
-  await pool.query('UPDATE notifications SET read = TRUE WHERE id = $1 AND user_id = $2', [notificationId, userId]);
+  const res = await pool.query(
+    'UPDATE notifications SET read = TRUE WHERE id = $1 AND user_id = $2',
+    [notificationId, userId]
+  );
+  if (res.rowCount === 0) {
+    throw new Error('Notification not found or does not belong to this user');
+  }
 }
 
 async function markAllRead(userId) {
