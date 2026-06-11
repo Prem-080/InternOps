@@ -63,6 +63,25 @@ const { email, password } = result.data;
     return { csrfToken: generateToken() };
   });
 
+  // Verify email
+  fastify.post('/verify-email', async (req, reply) => {
+    const schema = z.object({ token: z.string() });
+    const { token } = schema.parse(req.body);
+    const { verifyEmail } = require('./verificationService');
+    await verifyEmail(token);
+    return { message: 'Email verified successfully. You can now log in.' };
+  });
+
+  // Resend verification email
+  fastify.post('/resend-verification', { preHandler: [auth] }, async (req, reply) => {
+    const repo = require('./repository');
+    const user = await repo.findById(req.user.id);
+    if (!user) return reply.status(404).send({ error: 'User not found' });
+    const { sendVerificationEmail } = require('./verificationService');
+    await sendVerificationEmail(user.id, user.email);
+    return { message: 'Verification email sent.' };
+  });
+
   // Forgot password
   fastify.post('/forgot-password', async (req, reply) => {
     const schema = z.object({ email: z.string().email() });

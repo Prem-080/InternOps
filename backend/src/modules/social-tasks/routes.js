@@ -4,6 +4,7 @@ const rbac = require('../../middleware/rbac');
 const repo = require('./repository');
 const { createAuditLog, extractRequestInfo } = require('../../utils/audit');
 const { z } = require('zod');
+const emailService = require('../../services/email');
 
 module.exports = async function socialTasksRoutes(fastify) {
   // Create a social task (Admin / Senior TL).
@@ -24,6 +25,12 @@ module.exports = async function socialTasksRoutes(fastify) {
       resourceType: 'social_task',
       resourceId: task.id,
       details: { title: task.title },
+    });
+    await emailService.sendNotification(req.user.email, {
+      title: 'Task Created',
+      message: `Task "${task.title}" has been created successfully.`,
+      actionUrl: `${process.env.APP_URL || 'http://localhost:5173'}/tasks`,
+      actionText: 'View Task',
     });
     return task;
   });

@@ -4,6 +4,7 @@ const { generateAccessToken, generateRefreshToken, hashToken, verifyRefreshToken
 const { createAuditLog } = require('../../utils/audit');
 const { recordLoginAttempt } = require('../../middleware/bruteForce');
 const { isValidStep } = require('../../utils/hierarchy');
+const { sendVerificationEmail } = require('./verificationService');
 
 async function register(data, creator) {
   if (data.managerId) {
@@ -16,6 +17,7 @@ async function register(data, creator) {
   }
   const user = await repo.createUser(data);
   await createAuditLog({ userId:creator.id, action:'USER_CREATED', resourceType:'user', resourceId:user.id, details:{email:user.email,role:user.role} });
+  sendVerificationEmail(user.id, user.email).catch(err => console.error('[Verification] Failed to send:', err.message));
   return user;
 }
 
