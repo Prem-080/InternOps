@@ -2,9 +2,9 @@ name: InternOps CI
 
 on:
   push:
-    branches: [ master, 'feature/*' ]
+    branches: [master, 'feature/*']
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   test:
