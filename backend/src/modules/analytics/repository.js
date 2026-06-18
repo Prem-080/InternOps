@@ -1,6 +1,11 @@
 ﻿const pool = require('../../config/db');
 
 async function departmentAttendanceRate(departmentId, month, year) {
+  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+
   const res = await pool.query(
     `
     SELECT u.id, u.full_name, u.email,
@@ -9,11 +14,14 @@ async function departmentAttendanceRate(departmentId, month, year) {
       COUNT(a.id) FILTER (WHERE a.status='HALF_DAY') as half_day,
       COUNT(a.id) as total_marked
     FROM users u
-    LEFT JOIN attendance a ON u.id = a.user_id AND EXTRACT(MONTH FROM a.date)=$2 AND EXTRACT(YEAR FROM a.date)=$3 AND a.deleted_at IS NULL
+    LEFT JOIN attendance a ON u.id = a.user_id 
+      AND a.date >= $2 
+      AND a.date <  $3 
+      AND a.deleted_at IS NULL
     WHERE u.department_id=$1 AND u.deleted_at IS NULL AND u.role='INTERN'
     GROUP BY u.id, u.full_name, u.email
   `,
-    [departmentId, month, year]
+    [departmentId, startDate, endDate]
   );
   return res.rows;
 }

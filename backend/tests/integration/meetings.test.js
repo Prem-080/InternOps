@@ -203,6 +203,7 @@ describe('Meetings Integration Tests', () => {
         method: 'DELETE',
         url: `/api/meetings/${meetingId}`,
         headers: authHeaders(),
+        payload: {},
       });
       expect(res.statusCode).toBe(200);
     });
