@@ -46,6 +46,7 @@ async function routes(fastify) {
       // Generate UUID filename
       const filename = uuidv4() + ext;
       const absoluteUploadDir = path.join(__dirname, '..', '..', 'uploads');
+      await fs.promises.mkdir(absoluteUploadDir, { recursive: true });
       const uploadPath = path.join(absoluteUploadDir, filename);
       await fs.promises.writeFile(uploadPath, await data.toBuffer());
       const dbSavedPath = path.join('uploads', filename);
