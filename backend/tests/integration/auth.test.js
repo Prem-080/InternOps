@@ -252,6 +252,26 @@ describe('Auth Integration Tests', () => {
       });
       expect(res.statusCode).toBe(200);
     });
+
+    it('should exempt login with query parameters from CSRF protection', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login?param=1',
+        headers: { 'Content-Type': 'application/json' },
+        payload: { email: 'admin@internops.com', password: 'wrong' },
+      });
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('should not exempt path prefix collision routes from CSRF protection', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/auth/login-callback',
+        headers: { 'Content-Type': 'application/json' },
+        payload: {},
+      });
+      expect(res.statusCode).toBe(403);
+    });
   });
 
   describe('Password Reset Flow', () => {
