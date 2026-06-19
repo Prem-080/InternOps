@@ -194,6 +194,14 @@ async function routes(fastify) {
           .send({ error: 'Only creator can add attendees' });
       }
       await repo.addAttendee(req.params.id, userId);
+      await createAuditLog({
+        userId: req.user.id,
+        action: 'MEETING_ATTENDEE_ADDED',
+        resourceType: 'meeting',
+        resourceId: req.params.id,
+        details: { addedUserId: userId },
+        ...extractRequestInfo(req),
+      });
       return { message: 'Attendee added' };
     }
   );
@@ -209,6 +217,14 @@ async function routes(fastify) {
         return reply.status(403).send({ error: 'Only creator or admin' });
       }
       await repo.removeAttendee(req.params.id, req.params.userId);
+      await createAuditLog({
+        userId: req.user.id,
+        action: 'MEETING_ATTENDEE_REMOVED',
+        resourceType: 'meeting',
+        resourceId: req.params.id,
+        details: { removedUserId: req.params.userId },
+        ...extractRequestInfo(req),
+      });
       return { message: 'Attendee removed' };
     }
   );
