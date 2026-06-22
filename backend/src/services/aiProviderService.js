@@ -1,8 +1,48 @@
 const crypto = require('crypto');
 const config = require('../config');
+const { getRedisClient } = require('../config/redis');
+
+class BoundedCache {
+  constructor(maxSize = 1000) {
+    this.maxSize = maxSize;
+    this.cache = new Map();
+  }
+
+  get(key) {
+    const cached = this.cache.get(key);
+    if (!cached) return null;
+
+    if (Date.now() > cached.expiresAt) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    // Refresh position to implement LRU (delete and re-insert)
+    this.cache.delete(key);
+    this.cache.set(key, cached);
+
+    return cached.value;
+  }
+
+  set(key, value, ttlMs) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
+    }
+
+    this.cache.set(key, {
+      value,
+      expiresAt: Date.now() + ttlMs,
+    });
+  }
+}
 
 const failureState = new Map();
-const responseCache = new Map();
+const responseCache = new BoundedCache(1000);
 
 const FAILURE_LIMIT = Number(process.env.AI_PROVIDER_FAILURE_LIMIT || 3);
 const COOLDOWN_MS = Number(
@@ -42,26 +82,41 @@ function getCacheKey(payload) {
     .digest('hex');
 }
 
-function getCachedResponse(payload) {
+async function getCachedResponse(payload) {
   const key = getCacheKey(payload);
-  const cached = responseCache.get(key);
 
-  if (!cached) return null;
-
-  if (Date.now() > cached.expiresAt) {
-    responseCache.delete(key);
-    return null;
+  try {
+    const redis = await getRedisClient();
+    if (redis) {
+      const cached = await redis.get(`ai:cache:${key}`);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+      return null;
+    }
+  } catch (error) {
+    console.warn('[AI Cache] Redis read error:', error.message);
   }
 
-  return cached.value;
+  return responseCache.get(key);
 }
 
-function setCachedResponse(payload, value) {
+async function setCachedResponse(payload, value) {
   const key = getCacheKey(payload);
-  responseCache.set(key, {
-    value,
-    expiresAt: Date.now() + CACHE_TTL_MS,
-  });
+
+  try {
+    const redis = await getRedisClient();
+    if (redis) {
+      await redis.set(`ai:cache:${key}`, JSON.stringify(value), {
+        PX: CACHE_TTL_MS,
+      });
+      return;
+    }
+  } catch (error) {
+    console.warn('[AI Cache] Redis write error:', error.message);
+  }
+
+  responseCache.set(key, value, CACHE_TTL_MS);
 }
 
 function isProviderOpen(name) {
@@ -340,7 +395,7 @@ const providerRegistry = {
 
 async function generateAIResponse({ messages }) {
   const payload = { messages };
-  const cached = getCachedResponse(payload);
+  const cached = await getCachedResponse(payload);
 
   if (cached) {
     return {
@@ -386,8 +441,7 @@ async function generateAIResponse({ messages }) {
         cached: false,
       };
 
-      setCachedResponse(payload, result);
-
+      await setCachedResponse(payload, result);
       return result;
     } catch (error) {
       if (error instanceof ResponseSizeLimitError || error.statusCode === 413) {

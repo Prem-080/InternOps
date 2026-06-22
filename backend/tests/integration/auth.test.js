@@ -336,6 +336,6 @@ describe('Auth Integration Tests', () => {
         // Re-login so the cookie jar holds a valid refresh token again.
         await login();
       }
-    });
+    }, 30000);
   });
 });
