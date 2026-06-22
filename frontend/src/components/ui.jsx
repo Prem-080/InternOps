@@ -5,8 +5,7 @@ export function PageHeader({ title, subtitle, icon, actions }) {
     <div className="flex items-start justify-between flex-wrap gap-3 mb-6">
       <div className="flex items-center gap-3">
         {icon && (
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center text-xl shadow-lg shadow-indigo-200">
-            {icon}
+          <div className="w-11 h-11 text-white flex items-center justify-center text-xl">            {icon}
           </div>
         )}
         <div>
