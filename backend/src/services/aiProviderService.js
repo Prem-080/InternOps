@@ -248,7 +248,8 @@ async function parseJsonResponseWithLimit(response, providerName) {
 
 function buildPrompt(messages = []) {
   return messages
-    .map((m) => `${m.role || 'user'}: ${m.content || ''}`)
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .map((m) => `${m.role}: ${String(m.content || '').slice(0, 2000)}`)
     .join('\n');
 }
 
@@ -414,7 +415,15 @@ const providerRegistry = {
 };
 
 async function generateAIResponse({ userId, messages }) {
-  const payload = { userId, messages };
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  const sanitizedMessages = safeMessages
+    .slice(-16)
+    .map((m) => ({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: String(m.content || '').slice(0, 2000),
+    }));
+
+  const payload = { userId, messages: sanitizedMessages };
   const cached = await getCachedResponse(payload);
 
   if (cached) {
@@ -451,7 +460,7 @@ async function generateAIResponse({ userId, messages }) {
     }
 
     try {
-      const content = await provider.call(messages);
+      const content = await provider.call(sanitizedMessages);
 
       recordSuccess(providerName);
 
