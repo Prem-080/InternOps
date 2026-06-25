@@ -64,7 +64,7 @@ export default function Login() {
             </p>
           </div>
           {/* Card */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md shadow-2xl p-8">
+          <div className="rounded-2xl border border-white/10 bg-black/20 backdrop-blur-lg shadow-2xl p-8">
             <h2 className="text-xl font-bold text-white mb-1">Welcome back</h2>
             <p className="text-gray-300 text-sm mb-6">
               Log in to your dashboard
