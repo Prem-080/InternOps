@@ -41,7 +41,9 @@ export default function Tasks() {
   const [showForm, setShowForm] = useState(false);
 
   const canCreateTask = ['ADMIN', 'SENIOR_TL'].includes(user?.role);
-  const canVerify = ['CAPTAIN', 'TL', 'SENIOR_TL'].includes(user?.role);
+  const canVerify = ['ADMIN', 'CAPTAIN', 'TL', 'SENIOR_TL'].includes(
+    user?.role
+  );
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks'],
