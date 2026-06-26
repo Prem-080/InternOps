@@ -62,12 +62,13 @@ export default function RatingForm() {
           e.preventDefault();
           rateMutation.mutate({ rated_user_id: userId, score, remarks });
         }}
-        className="space-y-3"
+        className={`space-y-3 transition-opacity duration-200 ${rateMutation.isPending ? 'opacity-60 pointer-events-none' : ''}`}
       >
         <Select
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
           required
+          disabled={rateMutation.isPending}
         >
           <option value="">Select member…</option>
           {reports?.map((u) => (
@@ -83,8 +84,9 @@ export default function RatingForm() {
               <button
                 type="button"
                 key={n}
+                disabled={rateMutation.isPending}
                 onClick={() => setScore(n)}
-                className={`text-3xl transition hover:scale-110 ${n <= score ? 'text-amber-500' : 'text-gray-300'}`}
+                className={`text-3xl transition ${rateMutation.isPending ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'} ${n <= score ? 'text-amber-500' : 'text-gray-300'}`}
               >
                 ★
               </button>
@@ -96,6 +98,7 @@ export default function RatingForm() {
           rows={2}
           value={remarks}
           onChange={(e) => setRemarks(e.target.value)}
+          disabled={rateMutation.isPending}
         />
         <Btn variant="success" type="submit" disabled={rateMutation.isPending}>
           {rateMutation.isPending ? 'Submitting…' : `Submit ${score}/10 rating`}

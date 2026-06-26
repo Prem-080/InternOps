@@ -127,7 +127,7 @@ export function Input({ className = '', type, ...props }) {
       <input
         {...props}
         type={isPassword && showPassword ? 'text' : type}
-        className={`border border-gray-200 rounded-xl px-3 py-2.5 w-full focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none ${
+        className={`border border-gray-200 rounded-xl px-3 py-2.5 w-full focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
           isPassword ? 'pr-10' : ''
         } ${className}`}
       />
@@ -184,7 +184,7 @@ export function Textarea({ className = '', ...props }) {
   return (
     <textarea
       {...props}
-      className={`border border-gray-200 rounded-xl px-3 py-2.5 w-full focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition ${className}`}
+      className={`border border-gray-200 rounded-xl px-3 py-2.5 w-full focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     />
   );
 }
@@ -192,7 +192,7 @@ export function Select({ className = '', children, ...props }) {
   return (
     <select
       {...props}
-      className={`border border-gray-200 rounded-xl px-3 py-2.5 w-full bg-white focus:ring-2 focus:ring-indigo-400 outline-none transition ${className}`}
+      className={`border border-gray-200 rounded-xl px-3 py-2.5 w-full bg-white focus:ring-2 focus:ring-indigo-400 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       {children}
     </select>
