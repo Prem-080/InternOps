@@ -70,6 +70,27 @@ async function refreshCsrfToken() {
 beforeAll(async () => {
   await app.ready();
   await resetSeededAdminPassword();
+
+  // Clean up other users/admins that might be lingering from other tests
+  try {
+    await pool.query("DELETE FROM users WHERE role = 'ADMIN' AND email <> $1", [SEEDED_ADMIN_EMAIL]);
+  } catch (err) {
+    await pool.query('DELETE FROM refresh_tokens').catch(() => {});
+    await pool.query('DELETE FROM ratings').catch(() => {});
+    await pool.query('DELETE FROM attendance').catch(() => {});
+    await pool.query('DELETE FROM meetings').catch(() => {});
+    await pool.query('DELETE FROM audit').catch(() => {});
+    await pool.query('DELETE FROM task_assignments').catch(() => {});
+    await pool.query('DELETE FROM proof_submissions').catch(() => {});
+    await pool.query('DELETE FROM social_tasks').catch(() => {});
+  }
+
+  // Suspend any other admins that couldn't be deleted due to FK constraints
+  await pool.query("UPDATE users SET suspended = TRUE WHERE role = 'ADMIN' AND email <> $1 AND email <> $2", [
+    SEEDED_ADMIN_EMAIL,
+    SECOND_ADMIN_EMAIL
+  ]);
+
   // Clean up any prior-run fixtures
   await hardDelete(TEST_EMAILS);
   // Fetch initial CSRF token (pre-login)
@@ -225,6 +246,10 @@ describe('DELETE /api/users/:id — last-active-admin delete guard', () => {
     await pool.query('UPDATE users SET deleted_at = NOW() WHERE email = $1', [
       SECOND_ADMIN_EMAIL,
     ]);
+    const activeAdmins = await pool.query(
+      "SELECT id, email, role, suspended, deleted_at FROM users WHERE role = 'ADMIN' AND suspended = FALSE AND deleted_at IS NULL"
+    );
+    console.log('ACTIVE ADMINS BEFORE DELETE:', activeAdmins.rows);
     // Direct SQL bypass must be rejected by the trigger
     await expect(
       pool.query('UPDATE users SET deleted_at = NOW() WHERE id = $1', [

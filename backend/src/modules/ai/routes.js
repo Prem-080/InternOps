@@ -41,7 +41,18 @@ async function routes(fastify) {
         rateLimit: {
           max: AI_CHAT_RATE_LIMIT,
           timeWindow: '1 minute',
-          keyGenerator: (req) => req.user?.id || req.ip,
+          keyGenerator: (req) => {
+            if (req.user?.id) return req.user.id;
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+              try {
+                const { verifyAccessToken } = require('../../utils/tokens');
+                const decoded = verifyAccessToken(authHeader.split(' ')[1]);
+                return decoded.id;
+              } catch (err) {}
+            }
+            return req.ip;
+          },
         },
       },
     },

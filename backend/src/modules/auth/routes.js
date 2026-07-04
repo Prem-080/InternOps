@@ -326,8 +326,7 @@ async function routes(fastify) {
         userAgent: req.headers['user-agent'],
       };
 
-      reply.clearCookie('csrf-sid', { path: '/' });
-      reply.clearCookie('csrf-token', { path: '/' });
+      rotateAndSetCsrf(req, reply, null);
       return { message: 'Logged out' };
     }
   );

@@ -27,6 +27,7 @@ async function cleanTestData() {
 describe('Migration Integrity', () => {
   beforeAll(async () => {
     await pool.query('SELECT 1');
+    await cleanTestData();
   });
 
   afterEach(async () => {

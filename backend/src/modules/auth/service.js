@@ -81,15 +81,15 @@ async function login(email, password, ip, userAgent) {
   if (!user || user.suspended) {
     // Always run argon2.verify even when user not found to flatten timing
     const argon2 = require('argon2');
-    argon2.verify(DUMMY_HASH, password).catch(() => {});
-    recordLoginAttempt(email, ip, false).catch(() => {});
+    await argon2.verify(DUMMY_HASH, password).catch(() => {});
+    await recordLoginAttempt(email, ip, false).catch(() => {});
     throw new UnauthorizedError('Invalid credentials');
   }
 
   const valid = await repo.verifyPassword(user, password);
 
   if (!valid) {
-    recordLoginAttempt(email, ip, false).catch(() => {});
+    await recordLoginAttempt(email, ip, false).catch(() => {});
     throw new UnauthorizedError('Invalid credentials');
   }
 

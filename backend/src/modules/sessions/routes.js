@@ -59,7 +59,8 @@ async function routes(fastify) {
     },
     async (req, reply) => {
       await repo.revokeAllUserSessions(req.user.id);
-      await require('../auth/repository').revokeAllUserTokensRedis(req.user.id);
+      const { rotateAndSetCsrf } = require('../../middleware/csrf');
+      rotateAndSetCsrf(req, reply, null);
       await createAuditLog({
         userId: req.user.id,
         action: 'ALL_SESSIONS_REVOKED',
@@ -84,7 +85,6 @@ async function routes(fastify) {
     async (req, reply) => {
       const { userId } = req.params;
       await repo.revokeAllUserSessions(userId);
-      await require('../auth/repository').revokeAllUserTokensRedis(userId);
       await createAuditLog({
         userId: req.user.id,
         action: 'ADMIN_REVOKED_USER_SESSIONS',
