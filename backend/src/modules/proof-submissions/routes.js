@@ -128,11 +128,9 @@ async function routes(fastify) {
           const firstChunk = data.buffer.subarray(0, 16);
           const detectedMime = detectMimeFromBuffer(firstChunk);
           if (!detectedMime || detectedMime !== data.mimetype) {
-            return reply
-              .status(400)
-              .send({
-                error: 'File contents do not match declared image type',
-              });
+            return reply.status(400).send({
+              error: 'File contents do not match declared image type',
+            });
           }
 
           const filename = uuidv4() + ext;
