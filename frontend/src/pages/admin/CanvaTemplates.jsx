@@ -166,7 +166,7 @@ export default function CanvaTemplates() {
               {statusLoading ? (
                 <Spinner size="sm" />
               ) : (
-                <Badge variant={isConnected ? 'success' : 'danger'}>
+                <Badge color={isConnected ? 'green' : 'red'}>
                   {isConnected ? (
                     <span className="flex items-center gap-1">
                       <Check className="w-3 h-3" />
