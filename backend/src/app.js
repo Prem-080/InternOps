@@ -1,7 +1,6 @@
 require('dotenv').config();
 const validateEnv = require('./config/validateEnv');
 validateEnv();
-
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const Fastify = require('fastify');
@@ -15,6 +14,7 @@ const { csrfMiddleware } = require('./middleware/csrf');
 const { sanitizationMiddleware } = require('./middleware/sanitize');
 const { createAuditLog } = require('./utils/audit');
 const { setupCronJobs } = require('./utils/cron');
+
 const app = Fastify({
   trustProxy: config.nodeEnv === 'production' ? true : 'loopback',
   logger:
@@ -45,17 +45,14 @@ app.get(
   },
   async (req, reply) => {
     const redisStatus = getRedisStatus();
-
     if (process.env.NODE_ENV === 'test') {
       return reply.send({ status: 'ok' });
     }
-
     if (redisStatus === 'disconnected') {
       return reply
         .status(503)
         .send({ status: 'degraded', redis: 'disconnected' });
     }
-
     return reply.send({ status: 'ok' });
   }
 );
@@ -92,21 +89,16 @@ app.get(
   },
   async (req, reply) => {
     const checks = { db: false, redis: false };
-
     try {
       await pool.query('SELECT 1');
       checks.db = true;
     } catch {}
-
     const redisStatus = getRedisStatus();
-
     checks.redis =
       process.env.NODE_ENV === 'test' ||
       redisStatus === 'connected' ||
       redisStatus === 'disabled';
-
     const healthy = checks.db && checks.redis;
-
     reply
       .status(healthy ? 200 : 503)
       .send({ status: healthy ? 'healthy' : 'degraded', checks });
@@ -137,6 +129,11 @@ app.register(require('@fastify/helmet'), {
   },
 });
 
+app.register(require('@fastify/compress'), {
+  global: true,
+  encodings: ['gzip', 'deflate', 'br'],
+});
+
 //  Register once globally — no Redis dependency
 app.register(require('@fastify/rate-limit'), {
   global: true,
@@ -145,7 +142,6 @@ app.register(require('@fastify/rate-limit'), {
 });
 
 app.register(require('@fastify/cookie'));
-
 app.addHook('preHandler', csrfMiddleware);
 // Sanitize all string fields in body, query, and params using sanitize-html
 // (allowlist of zero tags) to prevent XSS. Runs after body parsing.
@@ -220,7 +216,6 @@ if (process.env.NODE_ENV !== 'test') {
     if (!routeOptions.url.startsWith('/api/')) return;
 
     routeOptions.schema = routeOptions.schema || {};
-
     if (!routeOptions.schema.response) {
       routeOptions.schema.response = {
         200: {
@@ -258,6 +253,7 @@ if (process.env.NODE_ENV !== 'test') {
 // ---- API routes (delegated to dedicated router factory) ----
 // v1 — stable; all existing clients target this prefix.
 app.register(require('./routes'), { prefix: '/api/v1' });
+
 // v2 — introduced alongside v1 so both are served concurrently.
 // Breaking changes land here; v1 receives Deprecation+Sunset headers
 // via the onSend hook in routes.js once V1_DEPRECATED=true is set.
@@ -279,6 +275,7 @@ app.get('/fallback', async (req, reply) => {
 });
 
 app.addHook('onRequest', metrics.trackActiveRequests);
+
 app.addHook('onRequest', async (request) => {
   request.startTime = Date.now();
 });
@@ -327,7 +324,6 @@ app.setErrorHandler((error, request, reply) => {
       },
       'Validation error'
     );
-
     return reply.status(400).send({
       error: 'Validation error',
       details: error.validation.map((v) => ({
@@ -355,7 +351,6 @@ app.setErrorHandler((error, request, reply) => {
       },
       'Zod validation error'
     );
-
     return reply.status(400).send({
       error: 'Validation error',
       details: error.issues || [],
@@ -407,9 +402,7 @@ const start = async () => {
       port: config.port,
       host: config.host,
     });
-
     initializeWebSocket(app.server, app.log);
-
     app.log.info(
       { port: config.port },
       `Server listening on port ${config.port}`
@@ -420,11 +413,21 @@ const start = async () => {
   }
 };
 
+const SHUTDOWN_TIMEOUT = 20000;
+
 const gracefulShutdown = async (signal) => {
   app.log.info({ signal }, `Received ${signal}, shutting down gracefully...`);
 
+  const forceShutdown = setTimeout(() => {
+    console.error('Shutdown timed out. Forcing exit.');
+    process.exit(1);
+  }, SHUTDOWN_TIMEOUT);
+
   try {
-    // close WebSocket server if initialized
+    // Stop accepting new requests and finish in-flight requests
+    await app.close();
+
+    // Close WebSocket server if initialized
     try {
       const io = getIO();
       if (io) {
@@ -436,19 +439,17 @@ const gracefulShutdown = async (signal) => {
       app.log.warn({ err: wsErr }, 'Error closing WebSocket server');
     }
 
-    // stop accepting new requests + finish in-flight requests
-    await app.close();
-
-    // close DB pool connections
+    // Close database pool connections
     await pool.end();
 
+    clearTimeout(forceShutdown);
     app.log.info('Cleanup completed. Exiting now.');
-
     if (process.env.NODE_ENV !== 'test') {
       process.exit(0);
     }
   } catch (err) {
     app.log.error({ err }, 'Error during shutdown');
+    clearTimeout(forceShutdown);
     if (process.env.NODE_ENV !== 'test') {
       process.exit(1);
     }
