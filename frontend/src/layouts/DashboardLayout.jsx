@@ -192,7 +192,7 @@ export default function DashboardLayout() {
     queryFn: () => api.get('/users/me').then((r) => r.data),
   });
 
-  const displayName = me?.full_name || user?.fullName || user?.email;
+  const displayName = me?.full_name || user?.full_name || user?.email;
   const avatarUrl = me?.avatar_url || null;
 
   useEffect(() => {
