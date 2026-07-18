@@ -41,7 +41,7 @@ async function routes(fastify) {
             },
             managerId: { type: 'string', format: 'uuid' },
             departmentId: { type: 'string', format: 'uuid' },
-            fullName: { type: 'string' },
+            full_name: { type: 'string' },
           },
         },
       },
@@ -72,7 +72,7 @@ async function routes(fastify) {
                 type: 'object',
                 required: ['email', 'password', 'role'],
                 properties: {
-                  fullName: { type: 'string' },
+                  full_name: { type: 'string' },
                   email: { type: 'string', format: 'email' },
                   password: { type: 'string', minLength: 8 },
                   role: {

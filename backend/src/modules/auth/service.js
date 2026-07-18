@@ -68,7 +68,7 @@ function publicUser(user) {
     id: user.id,
     email: user.email,
     role: user.role,
-    fullName: user.full_name,
+    full_name: user.full_name,
   };
 }
 
