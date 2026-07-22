@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -22,11 +21,11 @@ export default function Departments() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   const {
-  data: departments = [],
-  isLoading,
-  isError,
-  refetch,
-} = useQuery({
+    data: departments = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ['departments'],
     queryFn: () => api.get('/departments').then((r) => r.data),
   });
@@ -62,7 +61,7 @@ export default function Departments() {
   ];
 
   return (
-  <div className="animate-fade-in-up">
+    <div className="animate-fade-in-up">
       {/* Professional Header Block */}
       <PageHeader
         title="Departments"
@@ -120,32 +119,31 @@ export default function Departments() {
               className="max-w-md"
             />
 
-          <Btn
-            type="submit"
-            disabled={createMut.isPending}
-            className="rounded-2xl px-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:shadow-indigo-200 dark:hover:shadow-none"
-          >
-            {createMut.isPending ? (
-              <span className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Adding...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Add Department
-              </span>
-            )}
-          </Btn>
-        </form>
-      </Card>
-       )}
+            <Btn
+              type="submit"
+              disabled={createMut.isPending}
+              className="rounded-2xl px-5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:shadow-indigo-200 dark:hover:shadow-none"
+            >
+              {createMut.isPending ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Adding...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Add Department
+                </span>
+              )}
+            </Btn>
+          </form>
+        </Card>
+      )}
       {isError ? (
-  <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-    <h3 className="text-lg font-semibold text-red-700">
-      Failed to load departments
-    </h3>
-
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+          <h3 className="text-lg font-semibold text-red-700">
+            Failed to load departments
+          </h3>
 
           <Btn className="mt-4" onClick={() => refetch()}>
             Retry
