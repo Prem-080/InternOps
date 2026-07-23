@@ -27,10 +27,9 @@ import {
   ToggleRight,
 } from 'lucide-react';
 
-import { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-const Ratings = lazy(() => import('../pages/Ratings'));
 import api from '../lib/axios';
 import { connectSocket, disconnectSocket } from '../lib/socket';
 import { UserAvatar, ConfirmationModal } from '../components/ui';
@@ -51,10 +50,20 @@ const nav = [
     icon: Users,
     allowedRoles: MANAGER_ROLES,
   },
-  { path: '/attendance', label: 'Attendance', icon: CalendarCheck },
-  { path: '/ratings', label: 'Ratings', icon: Star },
-  { path: '/tasks', label: 'Tasks', icon: Target },
-  { path: '/meetings', label: 'Meetings', icon: Video },
+  {
+    path: '/attendance',
+    label: 'Attendance',
+    icon: CalendarCheck,
+    excludeRoles: ['ADMIN'],
+  },
+  { path: '/ratings', label: 'Ratings', icon: Star, excludeRoles: ['ADMIN'] },
+  { path: '/tasks', label: 'Tasks', icon: Target, excludeRoles: ['ADMIN'] },
+  {
+    path: '/meetings',
+    label: 'Meetings',
+    icon: Video,
+    excludeRoles: ['ADMIN'],
+  },
   { path: '/notifications', label: 'Notifications', icon: Bell },
   { path: '/profile', label: 'Profile', icon: User },
   { path: '/sessions', label: 'Sessions', icon: Shield },
@@ -154,6 +163,9 @@ const FULL_LOGO_SRC = '/UptoSkills.webp';
 const MINI_LOGO_SRC = '/Uptoskills_log_fevicon.png';
 
 function canShowNavItem(item, role, flags) {
+  if (item.excludeRoles && item.excludeRoles.includes(role)) {
+    return false;
+  }
   if (!item.allowedRoles) {
     if (item.featureFlag) return flags[item.featureFlag] === true;
     return true;
@@ -187,18 +199,6 @@ export default function DashboardLayout() {
     () => localStorage.getItem('theme') === 'dark'
   );
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [showRatingsModal, setShowRatingsModal] = useState(false);
-
-  useEffect(() => {
-    if (showRatingsModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [showRatingsModal]);
 
   const { data: me } = useQuery({
     queryKey: QUERY_KEYS.USER_PROFILE,
@@ -253,8 +253,7 @@ export default function DashboardLayout() {
   };
 
   const NavLink = ({ n }) => {
-    const active =
-      loc.pathname === n.path || (n.path === '/ratings' && showRatingsModal);
+    const active = loc.pathname === n.path;
     const Icon = n.icon;
 
     return (
@@ -420,18 +419,7 @@ export default function DashboardLayout() {
           </div>
         </header>
         <main className="flex-1 overflow-auto p-5 sm:p-6">
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-[50vh] w-full">
-                <div className="relative w-12 h-12 animate-fade-in">
-                  <div className="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-white/5"></div>
-                  <div className="absolute inset-0 rounded-full border-4 border-t-transparent border-r-transparent border-indigo-600 dark:border-indigo-400 animate-spin"></div>
-                </div>
-              </div>
-            }
-          >
-            <Outlet />
-          </Suspense>
+          <Outlet />
         </main>
       </div>
 
